@@ -110,18 +110,18 @@
       print*,'kmax1_am4,kmax1_gfs=',kmax1_am4,kmax1_gfs
       
       ifind=findloc(bk_numatkn,-1.)
-      if(kmax1_gfs.ne.ifind(1)-1) then
-       print*,'bk_numatkn kmax1_gfs inconsistent ',kmax1_gfs,ifind(1)-1
+      if(kmax1_gfs.ne.ifind(1)) then
+       print*,'kmax1_gfs bk_numatkn inconsistent ',kmax1_gfs,ifind(1)-1
        stop
       endif
       ifind=findloc(bk_numacc,-1.)
-      if(kmax1_gfs.ne.ifind(1)-1) then
-       print*,'bk_numacc kmax1_gfs inconsistent ',kmax1_gfs,ifind(1)-1
+      if(kmax1_gfs.ne.ifind(1)) then
+       print*,'kmax1_gfs bk_numacc  inconsistent ',kmax1_gfs,ifind(1)-1
        stop
       endif
       ifind=findloc(bk_numcor,-1.)
-      if(kmax1_gfs.ne.ifind(1)-1) then
-       print*,'bk_numcor kmax1_gfs inconsistent ',kmax1_gfs,ifind(1)-1
+      if(kmax1_gfs.ne.ifind(1)) then
+       print*,'kmax1_gfs bk_numcor  inconsistent ',kmax1_gfs,ifind(1)-1
        stop
       endif
           
@@ -201,7 +201,7 @@
       call check(nf90_inquire_dimension(ncid,iddim_lev,len=kmax))
       call check(nf90_inq_dimid(ncid,'levp',iddim_levp))
       call check(nf90_inquire_dimension(ncid,iddim_levp,len=kmax1))
-      if(kmax.ne.kmax1_gfs) then
+      if(kmax1.ne.kmax1_gfs) then
         print*,'profile for background aerosol numbers need adjustment'
 	stop
       endif
@@ -238,7 +238,7 @@
 	 enddo
         enddo
        enddo
-      enddo		
+      enddo
       print*,'1 bndx(numcor) min,max=',minval(bndx(:,:,:,:,L_numcor)),maxval(bndx(:,:,:,:,L_numcor))
       print*,'1 bndy(numcor) min,max=',minval(bndy(:,:,:,:,L_numcor)),maxval(bndy(:,:,:,:,L_numcor))
       
@@ -260,6 +260,9 @@
            do k=1,kmax       
             delp=ak_gfs(k+1)+bk_gfs(k+1)*ps_y(i,j,m)-(ak_gfs(k)+bk_gfs(k)*ps_y(i,j,m))
 	    if(abs(delp).le.1e-33) then
+	     print*,'delp too small,i,j,k,m,ak_gfs(k+1),ak_gfs(k)=',i,j,k,m,ak_gfs(k+1),ak_gfs(k)
+	     print*,'bk_gfs(k+1),bk_gfs(k),ps_y(i,j,m)=',bk_gfs(k+1),bk_gfs(k),ps_y(i,j,m)
+	     stop
 	     pmid_y(i,j,k,m)=0.
 	    else 
 	     pmid_y(i,j,k,m)=delp/(log(pface_tmp(k+1))-log(pface_tmp(k)))
@@ -282,7 +285,10 @@
            do k=1,kmax       
             delp=ak_gfs(k+1)+bk_gfs(k+1)*ps_x(i,j,m)-(ak_gfs(k)+bk_gfs(k)*ps_x(i,j,m))
 	    if(abs(delp).le.1e-33) then
-	       pmid_x(i,j,k,m)=0.
+	     print*,'delp too small,i,j,k,m,ak_gfs(k+1),ak_gfs(k)=',i,j,k,m,ak_gfs(k+1),ak_gfs(k)
+	     print*,'bk_gfs(k+1),bk_gfs(k),ps_x(i,j,m)=',bk_gfs(k+1),bk_gfs(k),ps_x(i,j,m)
+	     stop
+	     pmid_x(i,j,k,m)=0.
 	    else   
 	       pmid_x(i,j,k,m)=delp/(log(pface_tmp(k+1))-log(pface_tmp(k)))
 	    endif   
@@ -308,7 +314,7 @@
        jgeos=nlatgeos
        kgeos=nlevgeos
        if(kmax1_am4.ne.kgeos+1) then
-        print*,'inconsistent AM4 cooridate ',kgeos,kmax1_am4
+        print*,'inconsistent AM4 coordiate ',kgeos,kmax1_am4
 	stop
        endif
        	
@@ -370,7 +376,7 @@
  	 do n=1,2
 	  
 	  select case(n)
-	   case(1)	 
+	   case(1)
 	    jy=j      ! bottom
 	   case(2) 
 	    jy=jmax1-nhalo+j ! top
@@ -393,7 +399,7 @@
 	  enddo
 	  
 !---vertical index for top/bottom     
-	  x=bndcoordx(i,j,n,1) 	 
+	  x=bndcoordx(i,j,n,1)
 	  y=bndcoordx(i,j,n,2)
 	  xratio=x-int(x)
 	  yratio=y-int(y)
@@ -421,7 +427,7 @@
           enddo
         
 	enddo
-       enddo 	
+       enddo
       enddo
 
 ! --- left and right
@@ -454,7 +460,7 @@
 	 enddo
 
 !---vertical index for left/right   
-	  x=bndcoordy(i,j,n,1) 	 
+	  x=bndcoordy(i,j,n,1)
 	  y=bndcoordy(i,j,n,2)
 	  xratio=x-int(x)
 	  yratio=y-int(y)
@@ -489,7 +495,7 @@
        if(iprint.eq.1) then
 !         open(27,file='dust2.bin',form='unformatted',access='direct',recl=igeos*jgeos*4)
          open(27,file='o3-tmp.bin',form='unformatted',access='direct',recl=igeos*jgeos*4)
-	 open(28,file='pmid-tmp.bin',form='unformatted',access='direct',recl=imax*kmax1*4)
+	 open(28,file='pmid-tmp.bin',form='unformatted',access='direct',recl=imax*kmax*4)
 	 write(28,rec=1)pmid_x(1:imax,1,1:kmax,1)
 	 write(28,rec=2)pmid_x(1:imax,1,1:kmax,2)
 	 print*,'pmid_x2 top =',pmid_x(1:imax,1,1,2)
